@@ -18,11 +18,6 @@ class Settings(BaseSettings):
 
     # API Keys
     groq_api_key: str = ""
-    elevenlabs_api_key: str = ""
-
-    # Ollama settings
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3"
 
     # Directories (relative to project root)
     upload_dir: Path = PROJECT_ROOT / "uploads"
@@ -51,7 +46,6 @@ settings = Settings()
 print(f"🔍 Looking for .env file at: {PROJECT_ROOT / '.env'}")
 print(f"📁 Project root: {PROJECT_ROOT}")
 print(f"🔑 Groq API Key loaded: {'✅ Yes' if settings.groq_api_key else '❌ No'}")
-print(f"🎤 ElevenLabs API Key loaded: {'✅ Yes' if settings.elevenlabs_api_key else '❌ No'}")
 
 # Create required directories
 settings.upload_dir.mkdir(exist_ok=True)

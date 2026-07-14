@@ -108,7 +108,8 @@ class VectorStore:
         # Prepare results
         results = []
         for idx, distance in zip(indices[0], distances[0]):
-            if idx < len(doc_data['chunks']):
+            # FAISS returns -1 for empty slots when top_k exceeds the number of vectors
+            if 0 <= idx < len(doc_data['chunks']):
                 results.append((
                     doc_data['chunks'][idx],
                     doc_data['metadata'][idx],

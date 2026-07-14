@@ -15,9 +15,7 @@ vector_store = VectorStore(
 
 rag_service = RAGService(
     vector_store=vector_store,
-    groq_api_key=settings.groq_api_key,
-    ollama_base_url=settings.ollama_base_url,
-    ollama_model=settings.ollama_model
+    groq_api_key=settings.groq_api_key
 )
 
 

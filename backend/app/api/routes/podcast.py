@@ -18,9 +18,6 @@ podcast_service = PodcastService(
     vector_store=vector_store,
     audio_output_dir=settings.audio_output_dir,
     groq_api_key=settings.groq_api_key,
-    elevenlabs_api_key=settings.elevenlabs_api_key,
-    ollama_base_url=settings.ollama_base_url,
-    ollama_model=settings.ollama_model,
     max_duration=settings.max_podcast_duration
 )
 

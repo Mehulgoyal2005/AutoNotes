@@ -1,4 +1,3 @@
-import os
 import json
 import httpx
 from pathlib import Path
@@ -17,84 +16,50 @@ class PodcastService:
         vector_store,
         audio_output_dir: Path,
         groq_api_key: str = None,
-        elevenlabs_api_key: str = None,
-        ollama_base_url: str = "http://localhost:11434",
-        ollama_model: str = "llama3.2:latest",
         max_duration: int = 180
     ):
         self.vector_store = vector_store
         self.audio_output_dir = audio_output_dir
         self.groq_api_key = groq_api_key
-        self.elevenlabs_api_key = elevenlabs_api_key
-        self.ollama_base_url = ollama_base_url
-        self.ollama_model = ollama_model
         self.max_duration = max_duration
 
-        # ElevenLabs voice IDs for different speakers
-        # Alex: energetic male voice, Jordan: calm female voice
-        self.voice_ids = {
-            "Alex": "pNInz6obpgDQGcFmaJgB",  # Adam - deep male voice
-            "Jordan": "21m00Tcm4TlvDq8ikWAM"  # Rachel - calm female voice
-        }
+        if not groq_api_key:
+            raise ValueError(
+                "GROQ_API_KEY is not set. Add it to the .env file at the project root."
+            )
 
         print(f"🎙️  Podcast Service initialized")
-        print(f"   - Using {'ElevenLabs TTS' if elevenlabs_api_key else 'Google TTS (gTTS)'}")
-        print(f"   - LLM: {'Groq API' if groq_api_key else 'Local Ollama'}")
+        print(f"   - TTS: Google TTS (gTTS)")
+        print(f"   - LLM: Groq API")
 
     def _query_llm(self, prompt: str) -> str:
-        """Query LLM (Groq or Ollama) - Groq is prioritized"""
-        # Try Groq first if API key is available
-        if self.groq_api_key:
-            try:
-                print("🤖 Using Groq API for dialogue generation...")
-                with httpx.Client(timeout=120.0) as client:
-                    response = client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {self.groq_api_key}",
-                            "Content-Type": "application/json"
-                        },
-                        json={
-                            "model": "llama-3.3-70b-versatile",  # Active Groq model
-                            "messages": [{"role": "user", "content": prompt}],
-                            "temperature": 0.7,
-                            "max_tokens": 2500,
-                            "response_format": {"type": "json_object"}  # Force JSON output
-                        }
-                    )
-                    if response.status_code == 200:
-                        result = response.json()["choices"][0]["message"]["content"]
-                        print(f"✅ Successfully received response from Groq API")
-                        return result
-                    else:
-                        print(f"⚠️  Groq API returned status {response.status_code}: {response.text}")
-            except Exception as e:
-                print(f"❌ Groq API error: {e}, falling back to Ollama...")
-        else:
-            print("ℹ️  No Groq API key found, using Ollama...")
-
-        # Fallback to Ollama
+        """Query Groq LLM for dialogue generation"""
         try:
-            print("🤖 Using local Ollama for dialogue generation...")
+            print("🤖 Using Groq API for dialogue generation...")
             with httpx.Client(timeout=120.0) as client:
                 response = client.post(
-                    f"{self.ollama_base_url}/api/generate",
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.groq_api_key}",
+                        "Content-Type": "application/json"
+                    },
                     json={
-                        "model": self.ollama_model,
-                        "prompt": prompt,
-                        "stream": False,
-                        "format": "json"  # Request JSON format from Ollama
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.7,
+                        "max_tokens": 2500,
+                        "response_format": {"type": "json_object"}  # Force JSON output
                     }
                 )
                 if response.status_code == 200:
-                    result = response.json()["response"]
-                    print(f"✅ Successfully received response from Ollama")
+                    result = response.json()["choices"][0]["message"]["content"]
+                    print(f"✅ Successfully received response from Groq API")
                     return result
                 else:
-                    print(f"⚠️  Ollama returned status {response.status_code}")
+                    print(f"⚠️  Groq API returned status {response.status_code}: {response.text}")
                     return ""
         except Exception as e:
-            print(f"❌ Error querying Ollama: {e}")
+            print(f"❌ Groq API error: {e}")
             return ""
 
     def generate_dialogue(self, document_id: str) -> list:
@@ -193,78 +158,18 @@ OUTPUT FORMAT (JSON only, no other text):
             {"speaker": "Alex", "text": "Perfect advice! Thanks so much for breaking this down with me today, Jordan. And to everyone listening, we hope this sparked some ideas for you!"}
         ]
 
-    def _elevenlabs_tts(self, text: str, voice_id: str) -> Optional[AudioSegment]:
-        """Generate speech using ElevenLabs API - Prioritized over gTTS"""
-        if not self.elevenlabs_api_key:
-            return None
-
-        try:
-            print(f"🎤 Attempting ElevenLabs TTS...")
-            with httpx.Client(timeout=60.0) as client:
-                response = client.post(
-                    f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
-                    headers={
-                        "Accept": "audio/mpeg",
-                        "Content-Type": "application/json",
-                        "xi-api-key": self.elevenlabs_api_key
-                    },
-                    json={
-                        "text": text,
-                        "model_id": "eleven_monolingual_v1",
-                        "voice_settings": {
-                            "stability": 0.5,
-                            "similarity_boost": 0.75,
-                            "style": 0.5,
-                            "use_speaker_boost": True
-                        }
-                    }
-                )
-
-                if response.status_code == 200:
-                    # Save to temporary file
-                    temp_file = self.audio_output_dir / f"temp_elevenlabs_{random.randint(1000, 9999)}.mp3"
-                    with open(temp_file, 'wb') as f:
-                        f.write(response.content)
-
-                    # Load and return audio
-                    audio = AudioSegment.from_mp3(str(temp_file))
-                    temp_file.unlink()
-                    print(f"✅ ElevenLabs TTS successful")
-                    return audio
-                else:
-                    print(f"❌ ElevenLabs API returned status {response.status_code}: {response.text[:100]}")
-                    return None
-        except Exception as e:
-            print(f"❌ ElevenLabs error: {str(e)[:100]}")
-            return None
-
     def text_to_speech(self, text: str, speaker: str) -> AudioSegment:
-        """Convert text to speech - ElevenLabs prioritized, gTTS fallback"""
-
-        # PRIORITY 1: Try ElevenLabs first if API key is available
-        if self.elevenlabs_api_key:
-            if speaker in self.voice_ids:
-                audio = self._elevenlabs_tts(text, self.voice_ids[speaker])
-                if audio:
-                    print(f"✅ Generated speech for {speaker} using ElevenLabs")
-                    return audio
-                else:
-                    print(f"⚠️  ElevenLabs failed for {speaker}, falling back to gTTS")
-            else:
-                print(f"⚠️  No voice ID found for {speaker}, using gTTS")
-        else:
-            print(f"ℹ️  No ElevenLabs API key, using gTTS for {speaker}")
-
-        # FALLBACK: Use gTTS
-        print(f"🎤 Generating speech for {speaker} using gTTS (fallback)")
+        """Convert text to speech using gTTS"""
+        print(f"🎤 Generating speech for {speaker} using gTTS")
         tts = gTTS(text=text, lang='en', slow=False)
 
         # Save to temporary file
         temp_file = self.audio_output_dir / f"temp_{speaker}_{random.randint(1000, 9999)}.mp3"
-        tts.save(str(temp_file))
-
-        # Load audio
-        audio = AudioSegment.from_mp3(str(temp_file))
+        try:
+            tts.save(str(temp_file))
+            audio = AudioSegment.from_mp3(str(temp_file))
+        finally:
+            temp_file.unlink(missing_ok=True)
 
         # Apply slight modifications for different speakers
         if speaker == "Jordan":
@@ -279,9 +184,6 @@ OUTPUT FORMAT (JSON only, no other text):
                 "frame_rate": int(audio.frame_rate * 1.05)
             })
             audio = audio.set_frame_rate(44100)
-
-        # Clean up temp file
-        temp_file.unlink()
 
         return audio
 

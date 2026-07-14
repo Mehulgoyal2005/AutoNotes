@@ -2,7 +2,7 @@
 
 AutoNotes AI is a full-stack AI-powered application that allows users to upload documents, interact with them using intelligent question-answering, and generate podcast-style audio summaries using AI.
 
-It combines **Retrieval-Augmented Generation (RAG)** with **local LLMs (Ollama)** to provide a completely offline-capable AI experience.
+It combines **Retrieval-Augmented Generation (RAG)** with **Groq's fast LLM inference API** to deliver quick, context-aware answers.
 
 ---
 
@@ -21,7 +21,7 @@ This project demonstrates the integration of:
 * Full-stack web development
 
 ---
-## Sytem Design 
+## System Design
 <img width="1536" height="1024" alt="System Design" src="https://github.com/user-attachments/assets/db612738-b0fc-4081-9b3a-3b3c1be3f488" />
 
 ## ✨ Key Features
@@ -65,17 +65,16 @@ This project demonstrates the integration of:
 
 * FastAPI (Python)
 * FAISS (Vector Database)
-* LangChain
 
 ### 🔹 AI / ML
 
-* Ollama (Local LLM runtime)
-* LLaMA 3 model
-* Sentence Transformers
+* Groq API (LLM inference — Llama 3.3 70B)
+* Sentence Transformers (embeddings)
 
 ### 🔹 Audio
 
-* gTTS / ElevenLabs (optional)
+* gTTS (Google Text-to-Speech)
+* pydub + ffmpeg (audio processing)
 
 ---
 
@@ -92,10 +91,16 @@ This project demonstrates the integration of:
 
 ## 🚀 Installation & Setup
 
+### 🔹 Prerequisites
+
+* [uv](https://docs.astral.sh/uv/) (Python package manager) — installs Python 3.10 automatically
+* Node.js + npm
+* ffmpeg (required for podcast audio): `brew install ffmpeg` (macOS)
+
 ### 🔹 1. Clone Repository
 
 ```bash
-git clone https://github.com/shravaniranee/AutoNotes.git
+git clone https://github.com/Mehulgoyal2005/AutoNotes.git
 cd AutoNotes
 ```
 
@@ -103,29 +108,38 @@ cd AutoNotes
 
 ### 🔹 2. Setup Backend
 
+From the project root:
+
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
 
 ---
 
-### 🔹 3. Setup Ollama
+### 🔹 3. Configure API Key
 
-Install Ollama and run:
+Copy the example env file and add your [Groq API key](https://console.groq.com):
 
 ```bash
-ollama run llama3
+cp .env.example .env
+# then edit .env and set GROQ_API_KEY=your_key
 ```
+
+The `.env` file must be at the **project root** (not inside `backend/`).
 
 ---
 
 ### 🔹 4. Start Backend
 
 ```bash
-uvicorn app.main:app --reload
+./start_backend.sh
+```
+
+Or manually:
+
+```bash
+source .venv/bin/activate
+cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ---
@@ -191,7 +205,7 @@ AutoNotes/
 ## 🙏 Acknowledgements
 
 * Inspiration from Google NotebookLM
-* Ollama for local LLM support
+* Groq for fast LLM inference
 * FastAPI & React communities
 
 ---
