@@ -184,7 +184,7 @@ AutoNotes/
 
 ## 👩‍💻 Author
 
-**Shravani Pradeep Rane**
+**Mehul Goyal**
 
 ---
 
