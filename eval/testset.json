@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What are the seven layers of the OSI model in order from bottom to top?",
+    "ground_truth": "The seven layers of the OSI model from bottom to top are: Physical Layer, Data Link Layer, Network Layer, Transport Layer, Session Layer, Presentation Layer, and Application Layer.",
+    "source_doc": "67797b8d69e8916c"
+  },
+  {
+    "question": "Explain the TCP three-way handshake process.",
+    "ground_truth": "The TCP three-way handshake has three steps. Step 1 (SYN): the client sends a segment with the SYN flag set and an initial sequence number (ISN). Step 2 (SYN-ACK): the server responds with both SYN and ACK flags set, acknowledging the client's ISN + 1 and sending its own ISN. Step 3 (ACK): the client sends a segment with the ACK flag set and acknowledgment number equal to the server's ISN + 1. After this the connection is established and data transfer can begin.",
+    "source_doc": "67797b8d69e8916c"
+  },
+  {
+    "question": "What are the header sizes of TCP and UDP?",
+    "ground_truth": "The TCP header is 20 to 60 bytes, while the UDP header is 8 bytes.",
+    "source_doc": "67797b8d69e8916c"
+  },
+  {
+    "question": "How would you divide the network 192.168.10.0/24 into 4 subnets?",
+    "ground_truth": "To create 4 subnets you need 2 additional bits (2^2 = 4), giving a new prefix of /26 and a subnet mask of 255.255.255.192. Each subnet has 64 addresses with 62 usable hosts. Subnet 1 is 192.168.10.0 with hosts 192.168.10.1 to 192.168.10.62 and broadcast 192.168.10.63; subnet 2 starts at 192.168.10.64, and so on in blocks of 64.",
+    "source_doc": "67797b8d69e8916c"
+  }
+]

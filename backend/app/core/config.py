@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     chunk_size: int = 512
     chunk_overlap: int = 50
 
+    # Groundedness check (hallucination guard)
+    # A sentence is "grounded" if its embedding similarity to some retrieved
+    # chunk is >= the threshold; an answer passes if >= min_ratio of its
+    # substantive sentences are grounded.
+    groundedness_threshold: float = 0.4
+    groundedness_min_ratio: float = 0.6
+
     # Podcast settings
     max_podcast_duration: int = 180  # 3 minutes in seconds
 

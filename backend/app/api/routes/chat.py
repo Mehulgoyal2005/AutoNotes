@@ -15,7 +15,9 @@ vector_store = VectorStore(
 
 rag_service = RAGService(
     vector_store=vector_store,
-    groq_api_key=settings.groq_api_key
+    groq_api_key=settings.groq_api_key,
+    groundedness_threshold=settings.groundedness_threshold,
+    groundedness_min_ratio=settings.groundedness_min_ratio
 )
 
 
